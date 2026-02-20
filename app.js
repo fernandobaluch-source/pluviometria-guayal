@@ -15,6 +15,16 @@
         firebase.initializeApp(firebaseConfig);
     }
 
+    // Enable Offline Persistence
+    firebase.firestore().enablePersistence()
+        .catch((err) => {
+            if (err.code == 'failed-precondition') {
+                console.warn("Persistencia falló: múltiples pestañas abiertas.");
+            } else if (err.code == 'unimplemented') {
+                console.warn("Persistencia no soportada por el navegador.");
+            }
+        });
+
     // --- Constants ---
     const SESSION_KEY = 'pluviometria_session';
     const ACCENT_COLORS = ['accent-blue', 'accent-green', 'accent-orange', 'accent-purple', 'accent-red'];
