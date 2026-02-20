@@ -245,56 +245,67 @@
 
         // Create user form
         document.getElementById('createUserForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const errorEl = document.getElementById('createUserError');
-            const username = document.getElementById('newUsername').value.trim().toLowerCase();
-            const fullname = document.getElementById('newFullname').value.trim();
-            const password = document.getElementById('newPassword').value;
-            const role = document.getElementById('newRole').value;
+            try {
+                e.preventDefault();
+                const errorEl = document.getElementById('createUserError');
+                const username = document.getElementById('newUsername').value.trim().toLowerCase();
+                const fullname = document.getElementById('newFullname').value.trim();
+                const password = document.getElementById('newPassword').value;
+                const role = document.getElementById('newRole').value;
 
-            alert("Intentando crear usuario: " + username); // ALERTA DE PRUEBA
-            console.log("Datos de creación:", { username, fullname, role });
+                alert("DEBUG 1: Iniciando para " + username);
 
-            // Validation
-            if (!username || !fullname || !password) {
-                errorEl.textContent = 'Complete todos los campos';
-                errorEl.style.display = 'block';
-                return;
+                // Validation
+                if (!username || !fullname || !password) {
+                    alert("🔴 Error: Faltan campos");
+                    errorEl.textContent = 'Complete todos los campos';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+
+                if (!Array.isArray(users)) {
+                    alert("🔴 Error Crítico: 'users' no es una lista válida. Re-inicializando...");
+                    users = [];
+                }
+
+                alert("DEBUG 2: Validando duplicado entre " + users.length + " usuarios.");
+                const existing = users.find(u => u.username === username);
+                if (existing) {
+                    alert("🔴 Error: El usuario '" + username + "' ya existe.");
+                    errorEl.textContent = `El usuario "${username}" ya existe`;
+                    errorEl.style.display = 'block';
+                    return;
+                }
+
+                alert("DEBUG 3: Conectando a Firestore...");
+                errorEl.style.display = 'none';
+
+                // Add to Firestore
+                const db = firebase.firestore();
+                db.collection('users').add({
+                    username,
+                    fullname,
+                    password,
+                    role,
+                    createdAt: new Date().toISOString()
+                }).then(() => {
+                    alert("✅ DEBUG 4: Guardado con éxito en la nube.");
+                    // Reset form
+                    document.getElementById('newUsername').value = '';
+                    document.getElementById('newFullname').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('newRole').value = 'colaborador';
+                    showToast(`✓ Usuario "${username}" creado`);
+                }).catch(err => {
+                    alert("❌ ERROR DE FIREBASE: " + err.message);
+                    console.error("Error adding user: ", err);
+                    errorEl.textContent = 'Error al crear usuario: ' + err.message;
+                    errorEl.style.display = 'block';
+                });
+            } catch (err) {
+                alert("💥 CRASH DE JAVASCRIPT: " + err.message);
+                console.error(err);
             }
-            if (password.length < 4) {
-                errorEl.textContent = 'La contraseña debe tener al menos 4 caracteres';
-                errorEl.style.display = 'block';
-                return;
-            }
-            if (users.find(u => u.username === username)) {
-                errorEl.textContent = `El usuario "${username}" ya existe`;
-                errorEl.style.display = 'block';
-                return;
-            }
-
-            errorEl.style.display = 'none';
-
-            // Add to Firestore
-            const db = firebase.firestore();
-            db.collection('users').add({
-                username,
-                fullname,
-                password, // Note: In production, hash passwords!
-                role,
-                createdAt: new Date().toISOString()
-            }).then(() => {
-                // Reset form
-                document.getElementById('newUsername').value = '';
-                document.getElementById('newFullname').value = '';
-                document.getElementById('newPassword').value = '';
-                document.getElementById('newRole').value = 'colaborador';
-                showToast(`✓ Usuario "${username}" creado`);
-            }).catch(err => {
-                console.error("Error adding user: ", err);
-                alert("Error de Firebase: " + err.message); // Mostrar error real al usuario
-                errorEl.textContent = 'Error al crear usuario: ' + err.message;
-                errorEl.style.display = 'block';
-            });
         });
     }
 
