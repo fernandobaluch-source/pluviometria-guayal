@@ -579,6 +579,7 @@
 
         const total = filtered.length;
         const sum = filtered.reduce((acc, r) => acc + (r.medicion || 0), 0);
+        const avg = total > 0 ? sum / total : 0;
         const max = total > 0 ? Math.max(...filtered.map(r => r.medicion || 0)) : 0;
 
         // Total Mensual (Suma de los promedios diarios del mes actual)
@@ -604,6 +605,7 @@
         });
 
         animateValue(getEl('statTotal'), total, false);
+        animateValue(getEl('statAvg'), avg, true);
         animateValue(getEl('statMax'), max, true);
         animateValue(getEl('statMonthTotal'), monthSum, true);
     }
