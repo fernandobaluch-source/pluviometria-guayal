@@ -1,6 +1,5 @@
 (function () {
     'use strict';
-    // alert("Aplicación cargada (V2.0 - Diagnóstico activo)"); // Comentado para producción
 
     // --- Firebase Initialization ---
     if (!firebase.apps.length) {
@@ -15,7 +14,6 @@
         };
         firebase.initializeApp(firebaseConfig);
     }
-
 
     // --- Constants ---
     const SESSION_KEY = 'pluviometria_session';
@@ -44,11 +42,6 @@
     // ========================
 
     function initDataSync() {
-        if (!firebase.apps.length) {
-            console.error("Firebase no inicializado. Revise firebase-config.js");
-            return;
-        }
-
         const db = firebase.firestore();
 
         // Sync Users
@@ -66,7 +59,6 @@
             }
         }, (error) => {
             console.error("Error syncing users:", error);
-            alert("Error de sincronización (Usuarios): " + error.message);
         });
 
         // Sync Records
@@ -83,7 +75,6 @@
             document.getElementById('welcomeMsg').innerHTML += ' <span style="color:#22c55e;font-size:0.6rem;">● En línea</span>';
         }, (error) => {
             console.error("Error syncing records:", error);
-            alert("Error de sincronización (Registros): " + error.message);
             document.getElementById('welcomeMsg').innerHTML += ' <span style="color:#ef4444;font-size:0.6rem;">● Desconectado</span>';
             showToast('Error de conexión con la base de datos');
         });
@@ -99,7 +90,6 @@
     }
 
     function setSession(user) {
-        // Don't store Firestore ID in session to keep it clean
         const session = { username: user.username, fullname: user.fullname, role: user.role };
         localStorage.setItem(SESSION_KEY, JSON.stringify(session));
         return session;
@@ -110,7 +100,6 @@
     }
 
     function authenticate(username, password) {
-        // Fallback to default admin if Firebase users haven't loaded or are empty
         if (username === DEFAULT_ADMIN.username && password === DEFAULT_ADMIN.password) {
             return DEFAULT_ADMIN;
         }
@@ -124,7 +113,6 @@
     function initAuth() {
         const session = getSession();
         if (session) {
-            // Validate session against current users (if loaded)
             const userExists = users.length === 0 || users.find(u => u.username === session.username);
             if (userExists) {
                 currentUser = session;
@@ -149,15 +137,12 @@
         document.getElementById('loginOverlay').classList.add('hidden');
         document.getElementById('appContainer').style.display = '';
 
-        // Set welcome message
         const welcomeMsg = document.getElementById('welcomeMsg');
         welcomeMsg.textContent = `Hola, ${currentUser.fullname}`;
 
-        // Set collaborator field (read-only, auto-filled)
         const inputColaborador = document.getElementById('inputColaborador');
         inputColaborador.value = currentUser.fullname;
 
-        // Show user management button only for admin
         const btnUsers = document.getElementById('btnUsers');
         btnUsers.style.display = currentUser.role === 'admin' ? '' : 'none';
 
@@ -169,24 +154,32 @@
         loginForm.addEventListener('submit', function (e) {
             e.preventDefault();
             const username = document.getElementById('loginUser').value.trim().toLowerCase();
-            const password = document.getElementById('loginPass').value;
+            const password = document.getElementById('loginUserPass' || 'loginPass').value;
 
-            const user = authenticate(username, password);
+            // Handle potential ID mismatch if I renamed it
+            const loginPassEl = document.getElementById('loginPass');
+            const passValue = loginPassEl ? loginPassEl.value : '';
+
+            const user = authenticate(username, passValue);
             if (user) {
                 currentUser = setSession(user);
                 showApp();
             } else {
                 document.getElementById('loginError').classList.add('show');
-                document.getElementById('loginPass').value = '';
-                document.getElementById('loginPass').focus();
+                if (loginPassEl) {
+                    loginPassEl.value = '';
+                    loginPassEl.focus();
+                }
             }
         });
 
-        // Clear error on typing
-        document.getElementById('loginUser').addEventListener('input', () => {
+        const loginUser = document.getElementById('loginUser');
+        const loginPass = document.getElementById('loginPass');
+
+        if (loginUser) loginUser.addEventListener('input', () => {
             document.getElementById('loginError').classList.remove('show');
         });
-        document.getElementById('loginPass').addEventListener('input', () => {
+        if (loginPass) loginPass.addEventListener('input', () => {
             document.getElementById('loginError').classList.remove('show');
         });
     }
@@ -232,7 +225,6 @@
             container.appendChild(item);
         });
 
-        // Delete buttons
         container.querySelectorAll('.btn-delete-user').forEach(btn => {
             btn.addEventListener('click', () => {
                 const username = btn.getAttribute('data-username');
@@ -251,74 +243,54 @@
         document.getElementById('btnUsers').addEventListener('click', openUserModal);
         document.getElementById('closeUserModal').addEventListener('click', closeUserModal);
 
-        // Close on overlay click
         document.getElementById('userModal').addEventListener('click', (e) => {
             if (e.target.id === 'userModal') closeUserModal();
         });
 
-        // Create user form
         document.getElementById('createUserForm').addEventListener('submit', function (e) {
-            try {
-                e.preventDefault();
-                const errorEl = document.getElementById('createUserError');
-                const username = document.getElementById('newUsername').value.trim().toLowerCase();
-                const fullname = document.getElementById('newFullname').value.trim();
-                const password = document.getElementById('newPassword').value;
-                const role = document.getElementById('newRole').value;
+            e.preventDefault();
+            const errorEl = document.getElementById('createUserError');
+            const username = document.getElementById('newUsername').value.trim().toLowerCase();
+            const fullname = document.getElementById('newFullname').value.trim();
+            const password = document.getElementById('newPassword').value;
+            const role = document.getElementById('newRole').value;
 
-                alert("DEBUG 1: Iniciando para " + username);
-
-                // Validation
-                if (!username || !fullname || !password) {
-                    alert("🔴 Error: Faltan campos");
-                    errorEl.textContent = 'Complete todos los campos';
-                    errorEl.style.display = 'block';
-                    return;
-                }
-
-                if (!Array.isArray(users)) {
-                    alert("🔴 Error Crítico: 'users' no es una lista válida. Re-inicializando...");
-                    users = [];
-                }
-
-                alert("DEBUG 2: Validando duplicado entre " + users.length + " usuarios.");
-                const existing = users.find(u => u.username === username);
-                if (existing) {
-                    alert("🔴 Error: El usuario '" + username + "' ya existe.");
-                    errorEl.textContent = `El usuario "${username}" ya existe`;
-                    errorEl.style.display = 'block';
-                    return;
-                }
-
-                alert("DEBUG 3: Conectando a Firestore...");
-                errorEl.style.display = 'none';
-
-                // Add to Firestore
-                const db = firebase.firestore();
-                db.collection('users').add({
-                    username,
-                    fullname,
-                    password,
-                    role,
-                    createdAt: new Date().toISOString()
-                }).then(() => {
-                    alert("✅ DEBUG 4: Guardado con éxito en la nube.");
-                    // Reset form
-                    document.getElementById('newUsername').value = '';
-                    document.getElementById('newFullname').value = '';
-                    document.getElementById('newPassword').value = '';
-                    document.getElementById('newRole').value = 'colaborador';
-                    showToast(`✓ Usuario "${username}" creado`);
-                }).catch(err => {
-                    alert("❌ ERROR DE FIREBASE: " + err.message);
-                    console.error("Error adding user: ", err);
-                    errorEl.textContent = 'Error al crear usuario: ' + err.message;
-                    errorEl.style.display = 'block';
-                });
-            } catch (err) {
-                alert("💥 CRASH DE JAVASCRIPT: " + err.message);
-                console.error(err);
+            if (!username || !fullname || !password) {
+                errorEl.textContent = 'Complete todos los campos';
+                errorEl.style.display = 'block';
+                return;
             }
+            if (password.length < 4) {
+                errorEl.textContent = 'La contraseña debe tener al menos 4 caracteres';
+                errorEl.style.display = 'block';
+                return;
+            }
+            if (users.find(u => u.username === username)) {
+                errorEl.textContent = `El usuario "${username}" ya existe`;
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            errorEl.style.display = 'none';
+
+            const db = firebase.firestore();
+            db.collection('users').add({
+                username,
+                fullname,
+                password,
+                role,
+                createdAt: new Date().toISOString()
+            }).then(() => {
+                document.getElementById('newUsername').value = '';
+                document.getElementById('newFullname').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('newRole').value = 'colaborador';
+                showToast(`✓ Usuario "${username}" creado`);
+            }).catch(err => {
+                console.error("Error adding user: ", err);
+                errorEl.textContent = 'Error al crear usuario: ' + err.message;
+                errorEl.style.display = 'block';
+            });
         });
     }
 
@@ -334,7 +306,6 @@
         bindAppEvents();
     }
 
-    // --- DOM References (lazy, after login) ---
     function getEl(id) { return document.getElementById(id); }
 
     function setDefaultDate() {
@@ -435,7 +406,6 @@
         showLogin();
     }
 
-    // --- Form Submission ---
     function handleSubmit(e) {
         e.preventDefault();
         let hasError = false;
@@ -464,12 +434,9 @@
             comentario: getEl('inputComentario').value.trim()
         };
 
-        // Add to Firestore
         const db = firebase.firestore();
         db.collection('records').add(record)
             .then((docRef) => {
-                console.log("Registro guardado con ID: ", docRef.id);
-                // Reset inputs
                 getEl('inputMedicion').value = '';
                 getEl('inputComentario').value = '';
                 getEl('inputMedicion').closest('.form-group').classList.remove('has-error');
@@ -477,7 +444,6 @@
             })
             .catch((error) => {
                 console.error("Error writing document: ", error);
-                alert("Error al guardar registro: " + error.message);
                 showToast('Error al guardar el registro');
             });
     }
@@ -581,14 +547,27 @@
         const avg = total > 0 ? sum / total : 0;
         const max = total > 0 ? Math.max(...filtered.map(r => r.medicion || 0)) : 0;
 
-        // Total Mensual (Acumulado del mes actual)
+        // Total Mensual (Suma de los promedios diarios del mes actual)
         const today = new Date();
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const monthPrefix = `${yyyy}-${mm}`;
 
         const monthlyRecords = records.filter(r => r.fecha && r.fecha.startsWith(monthPrefix));
-        const monthSum = monthlyRecords.reduce((acc, r) => acc + (r.medicion || 0), 0);
+
+        // Agrupar por día para promediar
+        const dailyData = {};
+        monthlyRecords.forEach(r => {
+            if (!dailyData[r.fecha]) dailyData[r.fecha] = [];
+            dailyData[r.fecha].push(r.medicion || 0);
+        });
+
+        let monthSum = 0;
+        Object.values(dailyData).forEach(measurements => {
+            const daySum = measurements.reduce((a, b) => a + b, 0);
+            const dayAvg = daySum / measurements.length;
+            monthSum += dayAvg;
+        });
 
         animateValue(getEl('statTotal'), total, false);
         animateValue(getEl('statAvg'), avg, true);
@@ -597,6 +576,7 @@
     }
 
     function animateValue(el, target, isDecimal) {
+        if (!el) return;
         const current = parseFloat(el.textContent) || 0;
         const diff = target - current;
         const steps = 20;
@@ -643,9 +623,11 @@
     function showToast(message) {
         const toast = getEl('toast');
         const toastMsg = getEl('toastMsg');
-        toastMsg.textContent = message;
-        toast.classList.add('show');
-        setTimeout(() => { toast.classList.remove('show'); }, 2500);
+        if (toast && toastMsg) {
+            toastMsg.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 2500);
+        }
     }
 
     // ========================
@@ -655,6 +637,6 @@
         initDataSync();
         bindLoginEvents();
         bindUserModalEvents();
-        setTimeout(initAuth, 1000); // Wait for initial sync
+        setTimeout(initAuth, 1000);
     });
 })();
