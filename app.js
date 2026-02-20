@@ -1,7 +1,20 @@
-// ===== PLUVIOMETRÍA GUAYAL APP WITH FIRESTORE =====
 (function () {
     'use strict';
-    alert("Aplicación cargada (V2.0 - Diagnóstico activo)"); // VERIFICACIÓN DE CACHÉ
+    // alert("Aplicación cargada (V2.0 - Diagnóstico activo)"); // Comentado para producción
+
+    // --- Firebase Initialization ---
+    if (!firebase.apps.length) {
+        const firebaseConfig = {
+            apiKey: "AIzaSyDO7V87xp-BGXOnFtMZK4oNyVe4Ub4xG9c",
+            authDomain: "pluviometros-app.firebaseapp.com",
+            projectId: "pluviometros-app",
+            storageBucket: "pluviometros-app.firebasestorage.app",
+            messagingSenderId: "269748174052",
+            appId: "1:269748174052:web:cc79eb81f10f8ba9a340f1",
+            measurementId: "G-0TN2STZKV3"
+        };
+        firebase.initializeApp(firebaseConfig);
+    }
 
 
     // --- Constants ---
