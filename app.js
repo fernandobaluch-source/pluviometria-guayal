@@ -1,6 +1,8 @@
 // ===== PLUVIOMETRÍA GUAYAL APP WITH FIRESTORE =====
 (function () {
     'use strict';
+    alert("Aplicación cargada (V2.0 - Diagnóstico activo)"); // VERIFICACIÓN DE CACHÉ
+
 
     // --- Constants ---
     const SESSION_KEY = 'pluviometria_session';
@@ -249,6 +251,9 @@
             const fullname = document.getElementById('newFullname').value.trim();
             const password = document.getElementById('newPassword').value;
             const role = document.getElementById('newRole').value;
+
+            alert("Intentando crear usuario: " + username); // ALERTA DE PRUEBA
+            console.log("Datos de creación:", { username, fullname, role });
 
             // Validation
             if (!username || !fullname || !password) {
