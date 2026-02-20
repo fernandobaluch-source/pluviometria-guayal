@@ -285,10 +285,6 @@
                 <div class="stat-label">Registros</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="statAvg">0.0</div>
-                <div class="stat-label">Promedio (mm)</div>
-            </div>
-            <div class="stat-card">
                 <div class="stat-value" id="statMax">0.0</div>
                 <div class="stat-label">Máximo (mm)</div>
             </div>
@@ -301,6 +297,25 @@
                     </svg>
                     Total del Mes
                 </div>
+            </div>
+        </section>
+
+        <!-- New: Rain Gauge (Pluviometro) Filter -->
+        <section class="p-filter-section">
+            <h3 class="filter-title">Consultar por Pluviómetro</h3>
+            <div class="p-pills" id="pPills">
+                <button class="p-pill active" data-p="all">Todos</button>
+                <button class="p-pill" data-p="1">P1</button>
+                <button class="p-pill" data-p="2">P2</button>
+                <button class="p-pill" data-p="3">P3</button>
+                <button class="p-pill" data-p="4">P4</button>
+                <button class="p-pill" data-p="5">P5</button>
+                <button class="p-pill" data-p="6">P6</button>
+                <button class="p-pill" data-p="7">P7</button>
+                <button class="p-pill" data-p="8">P8</button>
+                <button class="p-pill" data-p="9">P9</button>
+                <button class="p-pill" data-p="10">P10</button>
+                <button class="p-pill" data-p="11">P11</button>
             </div>
         </section>
 
@@ -340,7 +355,7 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="app.js?v=4.0"></script>
+    <script src="app.js?v=4.1"></script>
 </body>
 
 </html>

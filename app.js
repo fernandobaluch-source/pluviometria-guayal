@@ -45,6 +45,7 @@
     let currentUser = null;
     let dateOffset = 0;
     let selectedDate = null;
+    let selectedPluviometro = 'all';
     let isFirestoreReady = false;
 
     // ========================
@@ -400,6 +401,17 @@
         getEl('datePrev').addEventListener('click', () => { dateOffset--; renderDatePills(); });
         getEl('dateNext').addEventListener('click', () => { dateOffset++; renderDatePills(); });
 
+        // Pluviometro Pills Events
+        document.querySelectorAll('.p-pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                document.querySelectorAll('.p-pill').forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                selectedPluviometro = pill.getAttribute('data-p');
+                renderHistory();
+                updateStats();
+            });
+        });
+
         getEl('inputMedicion').addEventListener('input', () => {
             getEl('inputMedicion').closest('.form-group').classList.remove('has-error');
         });
@@ -460,9 +472,16 @@
     // --- Render History ---
     function renderHistory() {
         const historyList = getEl('historyList');
-        const filtered = selectedDate
-            ? records.filter(r => r.fecha === selectedDate)
-            : records;
+        let filtered = records;
+
+        if (selectedDate) {
+            filtered = filtered.filter(r => r.fecha === selectedDate);
+        }
+
+        if (selectedPluviometro !== 'all') {
+            const pNum = parseInt(selectedPluviometro);
+            filtered = filtered.filter(r => r.pluviometro === pNum);
+        }
 
         if (filtered.length === 0) {
             historyList.innerHTML = '';
@@ -547,13 +566,19 @@
 
     // --- Stats ---
     function updateStats() {
-        const filtered = selectedDate
-            ? records.filter(r => r.fecha === selectedDate)
-            : records;
+        let filtered = records;
+
+        if (selectedDate) {
+            filtered = filtered.filter(r => r.fecha === selectedDate);
+        }
+
+        if (selectedPluviometro !== 'all') {
+            const pNum = parseInt(selectedPluviometro);
+            filtered = filtered.filter(r => r.pluviometro === pNum);
+        }
 
         const total = filtered.length;
         const sum = filtered.reduce((acc, r) => acc + (r.medicion || 0), 0);
-        const avg = total > 0 ? sum / total : 0;
         const max = total > 0 ? Math.max(...filtered.map(r => r.medicion || 0)) : 0;
 
         // Total Mensual (Suma de los promedios diarios del mes actual)
@@ -579,7 +604,6 @@
         });
 
         animateValue(getEl('statTotal'), total, false);
-        animateValue(getEl('statAvg'), avg, true);
         animateValue(getEl('statMax'), max, true);
         animateValue(getEl('statMonthTotal'), monthSum, true);
     }
