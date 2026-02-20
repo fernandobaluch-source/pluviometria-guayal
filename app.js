@@ -151,24 +151,23 @@
 
     function bindLoginEvents() {
         const loginForm = document.getElementById('loginForm');
+        if (!loginForm) return;
+
         loginForm.addEventListener('submit', function (e) {
             e.preventDefault();
             const username = document.getElementById('loginUser').value.trim().toLowerCase();
-            const password = document.getElementById('loginUserPass' || 'loginPass').value;
+            const password = document.getElementById('loginPass').value;
 
-            // Handle potential ID mismatch if I renamed it
-            const loginPassEl = document.getElementById('loginPass');
-            const passValue = loginPassEl ? loginPassEl.value : '';
-
-            const user = authenticate(username, passValue);
+            const user = authenticate(username, password);
             if (user) {
                 currentUser = setSession(user);
                 showApp();
             } else {
                 document.getElementById('loginError').classList.add('show');
-                if (loginPassEl) {
-                    loginPassEl.value = '';
-                    loginPassEl.focus();
+                const passEl = document.getElementById('loginPass');
+                if (passEl) {
+                    passEl.value = '';
+                    passEl.focus();
                 }
             }
         });
