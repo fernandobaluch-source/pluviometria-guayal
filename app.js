@@ -401,6 +401,14 @@
         getEl('datePrev').addEventListener('click', () => { dateOffset--; renderDatePills(); });
         getEl('dateNext').addEventListener('click', () => { dateOffset++; renderDatePills(); });
 
+        // Month Modal Events
+        getEl('btnMonthTotal').addEventListener('click', openMonthModal);
+        getEl('closeMonthModal').addEventListener('click', closeMonthModal);
+        getEl('monthModal').addEventListener('click', (e) => {
+            if (e.target.id === 'monthModal') closeMonthModal();
+        });
+        getEl('inputMonthPicker').addEventListener('change', calculateMonthTotal);
+
         // Pluviometro Pills Events
         document.querySelectorAll('.p-pill').forEach(pill => {
             pill.addEventListener('click', () => {
@@ -663,6 +671,49 @@
             toast.classList.add('show');
             setTimeout(() => { toast.classList.remove('show'); }, 2500);
         }
+    }
+
+    // ========================
+    // MONTH ACCUMULATED MODAL
+    // ========================
+    function openMonthModal() {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        getEl('inputMonthPicker').value = `${yyyy}-${mm}`;
+
+        document.getElementById('monthModal').style.display = '';
+        calculateMonthTotal();
+    }
+
+    function closeMonthModal() {
+        document.getElementById('monthModal').style.display = 'none';
+    }
+
+    function calculateMonthTotal() {
+        const selectedMonth = getEl('inputMonthPicker').value; // format: "YYYY-MM"
+        if (!selectedMonth) {
+            getEl('modalMonthTotal').textContent = '0.0';
+            return;
+        }
+
+        const monthlyRecords = records.filter(r => r.fecha && r.fecha.startsWith(selectedMonth));
+
+        const dailyData = {};
+        monthlyRecords.forEach(r => {
+            // Group measurements by date to average them first
+            if (!dailyData[r.fecha]) dailyData[r.fecha] = [];
+            dailyData[r.fecha].push(r.medicion || 0);
+        });
+
+        let monthSum = 0;
+        Object.values(dailyData).forEach(measurements => {
+            const daySum = measurements.reduce((a, b) => a + b, 0);
+            const dayAvg = daySum / measurements.length;
+            monthSum += dayAvg;
+        });
+
+        animateValue(getEl('modalMonthTotal'), monthSum, true);
     }
 
     // ========================
