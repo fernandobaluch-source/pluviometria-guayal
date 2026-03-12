@@ -596,7 +596,12 @@
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const monthPrefix = `${yyyy}-${mm}`;
 
-        const monthlyRecords = records.filter(r => r.fecha && r.fecha.startsWith(monthPrefix));
+        let monthlyRecords = records.filter(r => r.fecha && r.fecha.startsWith(monthPrefix));
+
+        if (selectedPluviometro !== 'all') {
+            const pNum = parseInt(selectedPluviometro);
+            monthlyRecords = monthlyRecords.filter(r => r.pluviometro === pNum);
+        }
 
         // Agrupar por día para promediar
         const dailyData = {};
@@ -697,7 +702,12 @@
             return;
         }
 
-        const monthlyRecords = records.filter(r => r.fecha && r.fecha.startsWith(selectedMonth));
+        let monthlyRecords = records.filter(r => r.fecha && r.fecha.startsWith(selectedMonth));
+
+        if (selectedPluviometro !== 'all') {
+            const pNum = parseInt(selectedPluviometro);
+            monthlyRecords = monthlyRecords.filter(r => r.pluviometro === pNum);
+        }
 
         const dailyData = {};
         monthlyRecords.forEach(r => {
