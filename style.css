@@ -101,8 +101,8 @@ body {
 }
 
 .login-icon {
-    width: 64px;
-    height: 64px;
+    width: 144px;
+    height: 144px;
     background: var(--gradient-sky);
     border-radius: var(--radius-lg);
     display: flex;
@@ -376,8 +376,8 @@ body {
 }
 
 .header-icon {
-    width: 48px;
-    height: 48px;
+    width: 108px;
+    height: 108px;
     background: var(--gradient-sky);
     border-radius: var(--radius-md);
     display: flex;
