@@ -47,6 +47,7 @@
     let selectedDate = null;
     let selectedPluviometro = 'all';
     let isFirestoreReady = false;
+    let rainChart = null;
 
     // ========================
     // AUTH SYSTEM & DATA SYNC
@@ -312,6 +313,7 @@
         setDefaultDate();
         renderDatePills();
         renderHistory();
+        initChart();
         updateStats();
         bindAppEvents();
     }
@@ -621,6 +623,8 @@
         animateValue(getEl('statAvg'), avg, true);
         animateValue(getEl('statMax'), max, true);
         animateValue(getEl('statMonthTotal'), monthSum, true);
+
+        updateChart();
     }
 
     function animateValue(el, target, isDecimal) {
@@ -724,6 +728,112 @@
         });
 
         animateValue(getEl('modalMonthTotal'), monthSum, true);
+    }
+
+    // ========================
+    // CHART SYSTEM
+    // ========================
+    function initChart() {
+        const canvas = document.getElementById('rainChart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        rainChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Lluvia (mm)',
+                    data: [],
+                    backgroundColor: 'rgba(56, 132, 255, 0.5)',
+                    borderColor: '#3884ff',
+                    borderWidth: 2,
+                    borderRadius: 5,
+                    barThickness: 'flex',
+                    maxBarThickness: 30
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#94a3b8',
+                            font: { size: 10 }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: '#94a3b8',
+                            font: { size: 10 }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#f8fafc',
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderWidth: 1,
+                        padding: 10,
+                        displayColors: false,
+                        callbacks: {
+                            label: function (context) {
+                                return `Lluvia: ${context.parsed.y.toFixed(1)} mm`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        updateChart(); // Llenar con datos inmediatamente después de crear
+    }
+
+    function updateChart() {
+        if (!rainChart) return;
+
+        // Get current month prefix
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const monthPrefix = `${yyyy}-${mm}`;
+
+        // Get days of the month
+        const daysInMonth = new Date(yyyy, today.getMonth() + 1, 0).getDate();
+        const labels = [];
+        const dailyAverages = [];
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dayStr = String(d).padStart(2, '0');
+            const isoDate = `${monthPrefix}-${dayStr}`;
+            labels.push(`${dayStr}/${mm}`);
+
+            // Filter records for this day
+            let dayRecords = records.filter(r => r.fecha === isoDate);
+            if (selectedPluviometro !== 'all') {
+                const pNum = parseInt(selectedPluviometro);
+                dayRecords = dayRecords.filter(r => r.pluviometro === pNum);
+            }
+
+            if (dayRecords.length > 0) {
+                const daySum = dayRecords.reduce((acc, r) => acc + (r.medicion || 0), 0);
+                dailyAverages.push(daySum / dayRecords.length);
+            } else {
+                dailyAverages.push(0);
+            }
+        }
+
+        rainChart.data.labels = labels;
+        rainChart.data.datasets[0].data = dailyAverages;
+        rainChart.update();
     }
 
     // ========================
