@@ -794,46 +794,71 @@
                 }
             }
         });
-        updateChart(); // Llenar con datos inmediatamente después de crear
+        rainChart.update(); // Llenar con datos inmediatamente después de crear
     }
 
     function updateChart() {
         if (!rainChart) return;
 
-        // Get current month prefix
+        console.log("📊 Actualizando gráfico... Total registros:", records.length);
+
         const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const monthPrefix = `${yyyy}-${mm}`;
+        let yyyy = today.getFullYear();
+        let mm = today.getMonth() + 1;
 
-        // Get days of the month
-        const daysInMonth = new Date(yyyy, today.getMonth() + 1, 0).getDate();
-        const labels = [];
-        const dailyAverages = [];
+        // Función para obtener datos de un mes específico
+        const getMonthlyData = (year, month) => {
+            const prefix = `${year}-${String(month).padStart(2, '0')}`;
+            const daysInMonth = new Date(year, month, 0).getDate();
+            const labels = [];
+            const data = [];
+            let foundAny = false;
 
-        for (let d = 1; d <= daysInMonth; d++) {
-            const dayStr = String(d).padStart(2, '0');
-            const isoDate = `${monthPrefix}-${dayStr}`;
-            labels.push(`${dayStr}/${mm}`);
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dayStr = String(d).padStart(2, '0');
+                const isoDate = `${prefix}-${dayStr}`;
+                labels.push(`${dayStr}/${String(month).padStart(2, '0')}`);
 
-            // Filter records for this day
-            let dayRecords = records.filter(r => r.fecha === isoDate);
-            if (selectedPluviometro !== 'all') {
-                const pNum = parseInt(selectedPluviometro);
-                dayRecords = dayRecords.filter(r => r.pluviometro === pNum);
+                let dayRecords = records.filter(r => r.fecha === isoDate);
+                if (selectedPluviometro !== 'all') {
+                    const pNum = parseInt(selectedPluviometro);
+                    dayRecords = dayRecords.filter(r => r.pluviometro === pNum);
+                }
+
+                if (dayRecords.length > 0) {
+                    const daySum = dayRecords.reduce((acc, r) => acc + (r.medicion || 0), 0);
+                    data.push(daySum / dayRecords.length);
+                    foundAny = true;
+                } else {
+                    data.push(0);
+                }
             }
+            return { prefix, labels, data, foundAny };
+        };
 
-            if (dayRecords.length > 0) {
-                const daySum = dayRecords.reduce((acc, r) => acc + (r.medicion || 0), 0);
-                dailyAverages.push(daySum / dayRecords.length);
-            } else {
-                dailyAverages.push(0);
+        let current = getMonthlyData(yyyy, mm);
+
+        // Fallback: Si el mes actual no tiene datos, buscar en los últimos 3 meses
+        if (!current.foundAny && records.length > 0) {
+            console.warn("⚠️ Sin datos para el mes actual, buscando histórico...");
+            for (let i = 1; i <= 3; i++) {
+                let prevMonth = mm - i;
+                let prevYear = yyyy;
+                if (prevMonth <= 0) { prevMonth += 12; prevYear--; }
+                let attempt = getMonthlyData(prevYear, prevMonth);
+                if (attempt.foundAny) {
+                    current = attempt;
+                    console.log(`✅ Datos encontrados en ${attempt.prefix}`);
+                    break;
+                }
             }
         }
 
-        rainChart.data.labels = labels;
-        rainChart.data.datasets[0].data = dailyAverages;
+        rainChart.data.labels = current.labels;
+        rainChart.data.datasets[0].data = current.data;
+        rainChart.data.datasets[0].label = `Lluvia (mm) - ${current.prefix}`;
         rainChart.update();
+        console.log(`📈 Gráfico actualizado para: ${current.prefix}. Datos dibujados:`, current.data.filter(v => v > 0).length);
     }
 
     // ========================
