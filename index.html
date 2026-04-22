@@ -342,6 +342,26 @@
             </div>
         </section>
 
+        <!-- Chart Section -->
+        <section class="chart-section" style="margin-bottom: 20px;">
+            <div class="card chart-card">
+                <div class="card-accent accent-purple"></div>
+                <div class="card-content">
+                    <h2 class="card-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="card-icon">
+                            <path d="M18 20V10" />
+                            <path d="M12 20V4" />
+                            <path d="M6 20V14" />
+                        </svg>
+                        Precipitaciones Diarias (mm)
+                    </h2>
+                    <div class="chart-container" style="position: relative; height:300px; width:100%;">
+                        <canvas id="rainChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- New: Rain Gauge (Pluviometro) Filter -->
         <section class="p-filter-section">
             <h3 class="filter-title">Consultar por Pluviómetro</h3>
@@ -397,6 +417,7 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="app.js?v=4.2"></script>
 </body>
 

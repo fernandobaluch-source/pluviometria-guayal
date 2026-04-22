@@ -359,7 +359,7 @@ body {
 
 /* ===== APP CONTAINER ===== */
 .app-container {
-    max-width: 520px;
+    max-width: 1000px;
     margin: 0 auto;
     padding: 16px;
     padding-bottom: 40px;
@@ -603,7 +603,7 @@ body {
 }
 
 .card-content {
-    padding: 20px 20px 20px 24px;
+    padding: 16px 18px 16px 20px;
 }
 
 .card-title {
@@ -613,7 +613,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 18px;
+    margin-bottom: 14px;
 }
 
 .card-icon {
@@ -629,7 +629,7 @@ body {
 }
 
 .form-group {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .form-group label {
@@ -727,6 +727,26 @@ body {
 .form-group.has-error select {
     border-color: var(--accent-red);
     box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
+}
+
+/* Rain Form Grid */
+#rainForm {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+#rainForm .form-group:nth-child(5),
+#rainForm .btn-submit {
+    grid-column: span 2;
+}
+
+#rainForm .form-group {
+    margin-bottom: 0;
+}
+
+#rainForm textarea {
+    min-height: 60px;
 }
 
 @keyframes shake {
@@ -1221,4 +1241,30 @@ body::after {
 
 .record-card {
     animation: fadeInUp 0.4s ease forwards;
+}
+
+/* ===== CHART SECTION ===== */
+.chart-section {
+    animation: slideUp 0.6s ease-out 0.1s both;
+}
+
+.chart-card {
+    margin-bottom: 0;
+}
+
+.chart-container {
+    padding: 10px 0;
+    min-height: 250px;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
